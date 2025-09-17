@@ -24,7 +24,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ ADD THIS LINE TO SERVE STATIC FILES
+// THIS LINE TO SERVES STATIC FILES
 app.use(express.static('public'));
 
 // View engine

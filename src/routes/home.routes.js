@@ -10,11 +10,9 @@ router.get('/home', verifyJWT, async (req, res) => {
             createdAt: -1,
         });
 
-        // 👇 CHANGE: Pass both files and the user object
         res.render('home', { files: files, user: req.user });
     } catch (error) {
         console.error('Error fetching files:', error);
-        // 👇 CHANGE: Pass the user object even on error
         res.render('home', { files: [], user: req.user });
     }
 });
