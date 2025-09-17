@@ -1,0 +1,151 @@
+<!doctype html>     
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 font-sans">
+
+    <nav class="bg-white dark:bg-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <img src="/images/logo.png" alt="Cherry Drive Logo" class="h-8 w-8 rounded-full object-cover">
+                    <span class="font-bold text-xl text-blue-600 dark:text-blue-400">Cherry Drive</span>
+                </div>
+                
+                <div class="relative">
+                    <button onclick="toggleDropdown()" class="flex items-center gap-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-full">
+                        <span><%= user.username %></span>
+                        <i class="ri-arrow-down-s-line"></i>
+                    </button>
+                    <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-md shadow-lg z-20">
+                        <div class="py-1">
+                            <a href="/user/logout" class="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600">Switch Account</a>
+                            <a href="/user/logout" class="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="message-container" class="mb-6"></div>
+
+        <button onclick="showPopUp()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-8 shadow-lg transition-transform hover:scale-105">
+            <i class="ri-upload-cloud-2-line mr-2"></i>Upload New File
+        </button>
+
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800 dark:text-white mb-6 border-b-2 border-slate-200 dark:border-slate-700 pb-2">Your Files</h2>
+
+            <% if (files && files.length > 0) { %>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    <% files.forEach(file => { %>
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:-translate-y-2">
+                            <a href="<%= file.cloudinaryUrl %>" target="_blank" class="block h-48">
+                                <img src="<%= file.cloudinaryUrl %>" alt="<%= file.originalName %>" class="w-full h-full object-cover">
+                            </a>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-slate-800 dark:text-white truncate" title="<%= file.originalName %>">
+                                    <%= file.originalName %>
+                                </h3>
+                                <div class="flex items-center justify-between mt-4">
+                                    <a href="<%= file.cloudinaryUrl %>" download class="text-sm bg-slate-600 hover:bg-slate-700 text-white py-2 px-4 rounded-md font-semibold">Download</a>
+                                    <button onclick="openDeleteModal('<%= file._id %>')" class="text-sm bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md font-semibold">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="text-slate-500 dark:text-slate-400">You haven't uploaded any files yet. Get started by clicking "Upload New File"!</p>
+            <% } %>
+        </div>
+    </main>
+
+    <div id="upload-pop" class="hidden backdrop-blur-sm bg-black/30 fixed top-0 left-0 h-screen w-screen flex flex-col items-center justify-center gap-4 p-4">
+        <form action="/file/upload" method="post" enctype="multipart/form-data" class="w-full max-w-lg relative">
+            <div class="flex items-center justify-center w-full">
+                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <i class="ri-upload-cloud-line text-4xl text-gray-500 dark:text-gray-400 mb-4"></i>
+                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Any file type up to 10MB</p>
+                    </div>
+                    <input id="dropzone-file" type="file" class="hidden" name="file" />
+                </label>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="w-full rounded bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4">Upload</button>
+            </div>
+            <button type="button" class="absolute -top-4 -right-4 text-white text-3xl" onclick="hidePopUp()">
+                <i class="ri-close-circle-line"></i>
+            </button>
+        </form>
+    </div>
+
+    <div id="delete-modal" class="hidden backdrop-blur-sm bg-black/30 fixed top-0 left-0 h-screen w-screen flex items-center justify-center">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white">Are you sure?</h3>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">This action cannot be undone. The file will be permanently deleted.</p>
+            <div class="mt-6 flex justify-end gap-4">
+                <button onclick="closeDeleteModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded">Cancel</button>
+                <form id="delete-form" action="" method="POST">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SCRIPT FOR DROPDOWN, POPUPS, AND MESSAGES ---
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const uploadPop = document.getElementById('upload-pop');
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteForm = document.getElementById('delete-form');
+
+        // User Dropdown
+        function toggleDropdown() {
+            dropdownMenu.classList.toggle('hidden');
+        }
+        window.onclick = function(event) {
+            if (!event.target.matches('.relative, .relative *')) {
+                if (!dropdownMenu.classList.contains('hidden')) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            }
+        }
+        
+        // Upload popup
+        function showPopUp() { uploadPop.style.display = 'flex'; }
+        function hidePopUp() { uploadPop.style.display = 'none'; }
+
+        // Delete modal
+        function openDeleteModal(fileId) {
+            deleteForm.action = `/file/delete/${fileId}`;
+            deleteModal.style.display = 'flex';
+        }
+        function closeDeleteModal() {
+            deleteModal.style.display = 'none';
+        }
+
+        // Display messages from URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get('error');
+            const success = params.get('success');
+            const container = document.getElementById('message-container');
+            if (error) {
+                container.innerHTML = `<div class="p-4 text-sm text-red-800 rounded-lg bg-red-100 dark:bg-red-900 dark:text-red-300" role="alert"><span class="font-medium">Error!</span> ${error}</div>`;
+            }
+            if (success) {
+                container.innerHTML = `<div class="p-4 text-sm text-green-800 rounded-lg bg-green-100 dark:bg-green-900 dark:text-green-300" role="alert"><span class="font-medium">Success!</span> ${success}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
